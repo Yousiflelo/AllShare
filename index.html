@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalShare - Secure File Sharing</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --gray: #6c757d;
+            --gray-light: #e9ecef;
+            --border-radius: 12px;
+            --shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .app-content {
+            display: flex;
+            min-height: 500px;
+        }
+
+        .left-panel {
+            flex: 1;
+            padding: 30px;
+            background-color: var(--light);
+            border-right: 1px solid var(--gray-light);
+        }
+
+        .right-panel {
+            flex: 1.5;
+            padding: 30px;
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title i {
+            background-color: var(--primary);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .room-code-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .code-display {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--gray-light);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            letter-spacing: 5px;
+            color: var(--primary);
+            text-align: center;
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-3px);
+        }
+
+        .btn-secondary {
+            background-color: var(--gray-light);
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background-color: #d8d9da;
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #3ab8d9;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #e11570;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        .file-drop-area {
+            border: 3px dashed var(--gray-light);
+            border-radius: var(--border-radius);
+            padding: 40px 20px;
+            text-align: center;
+            transition: var(--transition);
+            margin-bottom: 25px;
+            cursor: pointer;
+        }
+
+        .file-drop-area:hover, .file-drop-area.active {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+
+        .file-drop-area i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .file-drop-area h3 {
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        .file-drop-area p {
+            color: var(--gray);
+            margin-bottom: 20px;
+        }
+
+        .file-list {
+            margin-top: 25px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background-color: var(--gray-light);
+            border-radius: var(--border-radius);
+            margin-bottom: 10px;
+        }
+
+        .file-item i {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .file-size {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--success);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .status-container {
+            background-color: var(--light);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-top: 25px;
+        }
+
+        .status-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .status-message.active {
+            display: block;
+        }
+
+        .status-connected {
+            background-color: rgba(76, 201, 240, 0.2);
+            border-left: 4px solid var(--success);
+        }
+
+        .status-waiting {
+            background-color: rgba(248, 150, 30, 0.2);
+            border-left: 4px solid var(--warning);
+        }
+
+        .status-error {
+            background-color: rgba(247, 37, 133, 0.2);
+            border-left: 4px solid var(--danger);
+        }
+
+        .connected-users {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .user-badge {
+            background-color: var(--primary);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .app-content {
+                flex-direction: column;
+            }
+            
+            .left-panel {
+                border-right: none;
+                border-bottom: 1px solid var(--gray-light);
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .code-display {
+                font-size: 1.5rem;
+                letter-spacing: 3px;
+            }
+        }
+
+        /* Animation for room code */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-share-alt"></i> LocalShare</h1>
+            <p>Share files securely with others in the same room using a unique code</p>
+        </div>
+        
+        <div class="app-content">
+            <div class="left-panel">
+                <div class="panel-title">
+                    <i class="fas fa-door-closed"></i>
+                    Room Management
+                </div>
+                
+                <div class="room-code-container">
+                    <h3>Your Room Code</h3>
+                    <div class="code-display" id="roomCode">----</div>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="createRoomBtn">
+                            <i class="fas fa-plus-circle"></i> Create Room
+                        </button>
+                        <button class="btn btn-secondary" id="copyCodeBtn">
+                            <i class="far fa-copy"></i> Copy Code
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="joinRoomCode"><i class="fas fa-sign-in-alt"></i> Join a Room</label>
+                    <input type="text" id="joinRoomCode" class="form-control" placeholder="Enter room code" maxlength="4">
+                    <div class="btn-group">
+                        <button class="btn btn-success" id="joinRoomBtn">
+                            <i class="fas fa-door-open"></i> Join Room
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="status-container">
+                    <div class="status-title">
+                        <i class="fas fa-network-wired"></i> Connection Status
+                    </div>
+                    
+                    <div class="status-message status-waiting" id="statusWaiting">
+                        <strong>Waiting for connection...</strong>
+                        <p>Create or join a room to start sharing files</p>
+                    </div>
+                    
+                    <div class="status-message status-connected" id="statusConnected">
+                        <strong>Connected to room</strong>
+                        <p>You can now share files with others in the room</p>
+                        <div class="connected-users" id="connectedUsers">
+                            <div class="user-badge">
+                                <i class="fas fa-user"></i> You (Host)
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="status-message status-error" id="statusError">
+                        <strong>Connection error</strong>
+                        <p id="errorMessage">Unable to connect to the room</p>
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-danger" id="leaveRoomBtn">
+                        <i class="fas fa-sign-out-alt"></i> Leave Room
+                    </button>
+                </div>
+            </div>
+            
+            <div class="right-panel">
+                <div class="panel-title">
+                    <i class="fas fa-file-import"></i> File Sharing
+                </div>
+                
+                <div class="file-drop-area" id="fileDropArea">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h3>Drag & Drop Files Here</h3>
+                    <p>or click to browse files</p>
+                    <input type="file" id="fileInput" multiple style="display: none;">
+                    <button class="btn btn-secondary" id="browseFilesBtn">
+                        <i class="fas fa-folder-open"></i> Browse Files
+                    </button>
+                </div>
+                
+                <div id="fileListContainer">
+                    <h3>Files to Share</h3>
+                    <div class="file-list" id="fileList">
+                        <!-- Files will be added here -->
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="sendFilesBtn" disabled>
+                        <i class="fas fa-paper-plane"></i> Send Files
+                    </button>
+                    <button class="btn btn-secondary" id="clearFilesBtn">
+                        <i class="fas fa-trash-alt"></i> Clear Files
+                    </button>
+                </div>
+                
+                <div id="receivedFilesContainer" style="display: none;">
+                    <h3 style="margin-top: 25px;">Received Files</h3>
+                    <div class="file-list" id="receivedFilesList">
+                        <!-- Received files will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>LocalShare &copy; 2023 | Files are transferred directly between devices in the same room</p>
+        <p>No files are stored on any server</p>
+    </div>
+
+    <script>
+        // App state
+        const appState = {
+            currentRoom: null,
+            isHost: false,
+            connected: false,
+            files: [],
+            receivedFiles: [],
+            peers: {},
+            connection: null
+        };
+
+        // DOM Elements
+        const roomCodeElement = document.getElementById('roomCode');
+        const createRoomBtn = document.getElementById('createRoomBtn');
+        const copyCodeBtn = document.getElementById('copyCodeBtn');
+        const joinRoomCodeInput = document.getElementById('joinRoomCode');
+        const joinRoomBtn = document.getElementById('joinRoomBtn');
+        const leaveRoomBtn = document.getElementById('leaveRoomBtn');
+        const fileDropArea = document.getElementById('fileDropArea');
+        const fileInput = document.getElementById('fileInput');
+        const browseFilesBtn = document.getElementById('browseFilesBtn');
+        const fileList = document.getElementById('fileList');
+        const sendFilesBtn = document.getElementById('sendFilesBtn');
+        const clearFilesBtn = document.getElementById('clearFilesBtn');
+        const receivedFilesList = document.getElementById('receivedFilesList');
+        const receivedFilesContainer = document.getElementById('receivedFilesContainer');
+        
+        // Status elements
+        const statusWaiting = document.getElementById('statusWaiting');
+        const statusConnected = document.getElementById('statusConnected');
+        const statusError = document.getElementById('statusError');
+        const errorMessage = document.getElementById('errorMessage');
+        const connectedUsers = document.getElementById('connectedUsers');
+
+        // Generate a random 4-character room code
+        function generateRoomCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 4; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        // Create a new room
+        function createRoom() {
+            const roomCode = generateRoomCode();
+            appState.currentRoom = roomCode;
+            appState.isHost = true;
+            appState.connected = true;
+            
+            // Update UI
+            roomCodeElement.textContent = roomCode;
+            roomCodeElement.classList.add('pulse');
+            updateStatus('connected');
+            
+            // Add host to connected users
+            connectedUsers.innerHTML = `
+                <div class="user-badge">
+                    <i class="fas fa-user"></i> You (Host)
+                </div>
+            `;
+            
+            // Simulate a peer joining after 2 seconds (for demo purposes)
+            setTimeout(() => {
+                if (appState.connected) {
+                    const userBadge = document.createElement('div');
+                    userBadge.className = 'user-badge';
+                    userBadge.innerHTML = `<i class="fas fa-user"></i> User_${Math.floor(Math.random() * 1000)}`;
+                    connectedUsers.appendChild(userBadge);
+                }
+            }, 2000);
+            
+            console.log(`Room created: ${roomCode}`);
+        }
+
+        // Join an existing room
+        function joinRoom() {
+            const roomCode = joinRoomCodeInput.value.toUpperCase();
+            
+            if (!roomCode || roomCode.length !== 4) {
+                showError('Please enter a valid 4-character room code');
+                return;
+            }
+            
+            appState.currentRoom = roomCode;
+            appState.isHost = false;
+            appState.connected = true;
+            
+            // Update UI
+            roomCodeElement.textContent = roomCode;
+            roomCodeElement.classList.remove('pulse');
+            updateStatus('connected');
+            
+            // Add user to connected users
+            connectedUsers.innerHTML = `
+                <div class="user-badge">
+                    <i class="fas fa-user"></i> You (Guest)
+                </div>
+                <div class="user-badge">
+                    <i class="fas fa-user"></i> Host_${roomCode}
+                </div>
+            `;
+            
+            console.log(`Joined room: ${roomCode}`);
+        }
+
+        // Leave the current room
+        function leaveRoom() {
+            appState.currentRoom = null;
+            appState.isHost = false;
+            appState.connected = false;
+            appState.files = [];
+            appState.receivedFiles = [];
+            
+            // Update UI
+            roomCodeElement.textContent = '----';
+            roomCodeElement.classList.remove('pulse');
+            updateStatus('waiting');
+            fileList.innerHTML = '';
+            sendFilesBtn.disabled = true;
+            receivedFilesContainer.style.display = 'none';
+            joinRoomCodeInput.value = '';
+            
+            console.log('Left room');
+        }
+
+        // Update connection status UI
+        function updateStatus(status) {
+            // Hide all status messages
+            statusWaiting.classList.remove('active');
+            statusConnected.classList.remove('active');
+            statusError.classList.remove('active');
+            
+            // Show the active status
+            if (status === 'waiting') {
+                statusWaiting.classList.add('active');
+            } else if (status === 'connected') {
+                statusConnected.classList.add('active');
+            } else if (status === 'error') {
+                statusError.classList.add('active');
+            }
+        }
+
+        // Show error message
+        function showError(message) {
+            errorMessage.textContent = message;
+            updateStatus('error');
+            
+            // Auto-hide error after 5 seconds
+            setTimeout(() => {
+                if (appState.connected) {
+                    updateStatus('connected');
+                } else {
+                    updateStatus('waiting');
+                }
+            }, 5000);
+        }
+
+        // Handle file selection
+        function handleFileSelect(files) {
+            for (let file of files) {
+                // Check if file already exists
+                if (appState.files.some(f => f.name === file.name && f.size === file.size)) {
+                    continue;
+                }
+                
+                // Add file to state
+                const fileObj = {
+                    id: Date.now() + Math.random(),
+                    file: file,
+                    name: file.name,
+                    size: formatFileSize(file.size),
+                    type: file.type,
+                    progress: 0
+                };
+                
+                appState.files.push(fileObj);
+                
+                // Add file to UI
+                addFileToUI(fileObj);
+            }
+            
+            // Enable send button if there are files
+            sendFilesBtn.disabled = appState.files.length === 0;
+        }
+
+        // Add file to the UI list
+        function addFileToUI(fileObj) {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.id = `file-${fileObj.id}`;
+            
+            // Get file icon based on type
+            const fileIcon = getFileIcon(fileObj.type);
+            
+            fileItem.innerHTML = `
+                <i class="${fileIcon}"></i>
+                <div class="file-info">
+                    <div class="file-name">${fileObj.name}</div>
+                    <div class="file-size">${fileObj.size}</div>
+                    <div class="progress-bar">
+                        <div class="progress" id="progress-${fileObj.id}"></div>
+                    </div>
+                </div>
+            `;
+            
+            fileList.appendChild(fileItem);
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Get appropriate file icon
+        function getFileIcon(fileType) {
+            if (fileType.startsWith('image/')) return 'fas fa-file-image';
+            if (fileType.startsWith('video/')) return 'fas fa-file-video';
+            if (fileType.startsWith('audio/')) return 'fas fa-file-audio';
+            if (fileType.includes('pdf')) return 'fas fa-file-pdf';
+            if (fileType.includes('word') || fileType.includes('document')) return 'fas fa-file-word';
+            if (fileType.includes('excel') || fileType.includes('spreadsheet')) return 'fas fa-file-excel';
+            if (fileType.includes('zip') || fileType.includes('compressed')) return 'fas fa-file-archive';
+            return 'fas fa-file';
+        }
+
+        // Send files to room participants
+        function sendFiles() {
+            if (!appState.connected) {
+                showError('You must be connected to a room to send files');
+                return;
+            }
+            
+            if (appState.files.length === 0) {
+                showError('No files selected to send');
+                return;
+            }
+            
+            // Simulate file transfer progress
+            let completedFiles = 0;
+            
+            appState.files.forEach((fileObj, index) => {
+                // Simulate transfer progress with delays
+                setTimeout(() => {
+                    let progress = 0;
+                    const progressInterval = setInterval(() => {
+                        progress += Math.random() * 10;
+                        if (progress > 100) {
+                            progress = 100;
+                            clearInterval(progressInterval);
+                            completedFiles++;
+                            
+                            // Check if all files are transferred
+                            if (completedFiles === appState.files.length) {
+                                // Show success message
+                                showError('Files sent successfully!');
+                                
+                                // In a real app, this would trigger file reception on the other side
+                                simulateFileReception(appState.files);
+                            }
+                        }
+                        
+                        // Update progress bar
+                        const progressBar = document.getElementById(`progress-${fileObj.id}`);
+                        if (progressBar) {
+                            progressBar.style.width = `${progress}%`;
+                        }
+                    }, 100);
+                }, index * 300);
+            });
+            
+            console.log(`Sending ${appState.files.length} file(s) to room ${appState.currentRoom}`);
+        }
+
+        // Simulate receiving files (for demo purposes)
+        function simulateFileReception(files) {
+            // Only simulate for non-host users
+            if (appState.isHost) return;
+            
+            // Add received files to state and UI
+            files.forEach(fileObj => {
+                // Check if file already received
+                if (appState.receivedFiles.some(f => f.name === fileObj.name && f.size === fileObj.size)) {
+                    return;
+                }
+                
+                const receivedFile = {
+                    id: Date.now() + Math.random(),
+                    name: fileObj.name,
+                    size: fileObj.size,
+                    type: fileObj.type,
+                    date: new Date().toLocaleTimeString()
+                };
+                
+                appState.receivedFiles.push(receivedFile);
+                
+                // Add to received files UI
+                addReceivedFileToUI(receivedFile);
+            });
+            
+            // Show received files container
+            receivedFilesContainer.style.display = 'block';
+        }
+
+        // Add received file to UI
+        function addReceivedFileToUI(fileObj) {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            
+            // Get file icon based on type
+            const fileIcon = getFileIcon(fileObj.type);
+            
+            fileItem.innerHTML = `
+                <i class="${fileIcon}"></i>
+                <div class="file-info">
+                    <div class="file-name">${fileObj.name}</div>
+                    <div class="file-size">${fileObj.size} • Received at ${fileObj.date}</div>
+                </div>
+                <button class="btn btn-secondary" style="padding: 8px 12px; font-size: 0.9rem;" onclick="downloadFile('${fileObj.name}', '${fileObj.type}')">
+                    <i class="fas fa-download"></i>
+                </button>
+            `;
+            
+            receivedFilesList.appendChild(fileItem);
+        }
+
+        // Simulate file download
+        function downloadFile(filename, fileType) {
+            // In a real app, this would download the actual file
+            // For demo, we'll just show an alert
+            alert(`In a real application, "${filename}" would now be downloaded to your device.`);
+            console.log(`Downloading file: ${filename} (${fileType})`);
+        }
+
+        // Clear selected files
+        function clearFiles() {
+            appState.files = [];
+            fileList.innerHTML = '';
+            sendFilesBtn.disabled = true;
+        }
+
+        // Copy room code to clipboard
+        function copyRoomCode() {
+            if (!appState.currentRoom) {
+                showError('No room code to copy');
+                return;
+            }
+            
+            navigator.clipboard.writeText(appState.currentRoom)
+                .then(() => {
+                    // Change button text temporarily
+                    const originalText = copyCodeBtn.innerHTML;
+                    copyCodeBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    
+                    setTimeout(() => {
+                        copyCodeBtn.innerHTML = originalText;
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy room code: ', err);
+                    showError('Failed to copy room code');
+                });
+        }
+
+        // Event Listeners
+        createRoomBtn.addEventListener('click', createRoom);
+        
+        joinRoomBtn.addEventListener('click', () => {
+            if (appState.connected) {
+                if (confirm('You are already in a room. Leave current room to join a new one?')) {
+                    leaveRoom();
+                    setTimeout(joinRoom, 100);
+                }
+            } else {
+                joinRoom();
+            }
+        });
+        
+        leaveRoomBtn.addEventListener('click', () => {
+            if (appState.connected) {
+                if (confirm('Are you sure you want to leave the room?')) {
+                    leaveRoom();
+                }
+            }
+        });
+        
+        copyCodeBtn.addEventListener('click', copyRoomCode);
+        
+        // File handling events
+        browseFilesBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFileSelect(Array.from(e.target.files));
+            fileInput.value = '';
+        });
+        
+        fileDropArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // Drag and drop events
+        fileDropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileDropArea.classList.add('active');
+        });
+        
+        fileDropArea.addEventListener('dragleave', () => {
+            fileDropArea.classList.remove('active');
+        });
+        
+        fileDropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileDropArea.classList.remove('active');
+            
+            if (e.dataTransfer.files.length) {
+                handleFileSelect(Array.from(e.dataTransfer.files));
+            }
+        });
+        
+        sendFilesBtn.addEventListener('click', sendFiles);
+        clearFilesBtn.addEventListener('click', clearFiles);
+        
+        // Allow joining room by pressing Enter in the code input
+        joinRoomCodeInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                joinRoomBtn.click();
+            }
+        });
+        
+        // Initialize app
+        function initApp() {
+            updateStatus('waiting');
+            console.log('LocalShare app initialized');
+        }
+
+        // Start the app
+        initApp();
+    </script>
+</body>
+</html>
